@@ -25,14 +25,14 @@ BTNode* tree_search(BTNode *root, int x)
 // 最小的节点
 BTNode* tree_minimum(BTNode *root)
 {
-    while (root->left) root = root->left;
+    while (root && root->left) root = root->left;
     return root;
 }
 
 // 查找最大的节点
 BTNode* tree_maximum(BTNode *root)
 {
-    while(root->right) root = root->right;
+    while(root && root->right) root = root->right;
     return root;
 }
 

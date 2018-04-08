@@ -173,6 +173,38 @@ void bfs_rb_tree(RBnode *T)
     }
 }
 
+// 以v为根的子树，替换以u为根的子树
+void rb_transplant(RBnode* &T, RBnode *u, RBnode *v)
+{
+    if(u->p == nil)
+        T = v;
+    else if(u->p->left == u)
+        u->p->left = v;
+    else
+        u->p->right = v;
+    v->p = u->p;
+}
+
+RBnode* minimum(RBnode *T)
+{
+    if (T == nil) return nil;
+    while (T->left != nil) {
+        T = T->left;
+    }
+    return T;
+}
+
+RBnode* maximum(RBnode*T)
+{
+    if (T == nil) return nil;
+    while(T->right != nil) {
+        T = T->right;
+    }
+    return T;
+}
+
+// 删除操作
+
 
 
 int main()
