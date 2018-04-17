@@ -10,6 +10,8 @@ using namespace std;
 #define BLACK 1
 #define debug(x) printf("\n==[debug: %d]\n", x);
 
+typedef int RBTreeColor;
+
 struct RBnode {
     int data;
     RBnode *left,*right,*p; // p is parent.
@@ -203,8 +205,121 @@ RBnode* maximum(RBnode*T)
     return T;
 }
 
-// 删除操作
+// 修复删除节点导致的树性质不满足问题
 
+void rb_delete_fixup(RBnode* &T, RBnode* x)
+{
+    RBnode *w; // 指向x的兄弟节点
+    while (x != T && x->color == BLACK) {
+        if (x == x->p->left) { // x 是父亲的左儿子
+            w = x->p->right;
+            if (w->color == RED) {
+                // case 1.) x的兄弟结点w颜色是红色的, 那么改变x父亲(x->p)和w的颜色
+                // 再对x父亲结点(x->p)做一次左旋操作
+                w->color = BLACK;
+                x->p->color = RED;
+                left_rotate(T, x->p);
+            }
+            else if (w->left->color == BLACK && w->right->color == BLACK) {
+                // case 2.) w颜色是黑色的，同时w的2个儿子结点的颜色也都是黑色的
+                // 因为w,x都是黑色的, 可以同时减掉w,x身上的一层黑色, 然后
+                // 在二者的父节点(x->p)增加额外的黑色,那么这个父节点就会成为新的x结点(双重颜色的节点)
+                w->color = RED;
+                x = x->p;
+            }
+            else {
+                if (w->right->color == BLACK) {
+                    // case 3.) w是黑色的 w左儿子是红色的 右儿子是黑色的
+                    // 交换左儿子和w的颜色 右旋w节点 更新w位置
+                    w->color = RED;
+                    w->left->color = BLACK;
+                    right_rotate(T, w);
+                    w = x->p->right;
+                }
+                // case 4.) w是黑色的 右儿子是红色的
+                //
+                w->color = x->p->color;
+                x->p->color = BLACK;
+                w->right->color = BLACK;
+                left_rotate(T, x->p);
+                x = T;
+            }
+        }
+        else { // 是父亲的右儿子
+            w = x->p->left;
+            if (w->color == RED) {
+                w->color = BLACK;
+                x->p->color = RED;
+                right_rotate(T, x->p);
+            }
+            else if (w->left->color == BLACK && w->right->color == BLACK) {
+                w->color = RED;
+                x = x->p;
+            }
+            else {
+                if (w->left->color == BLACK) {
+                    w->color = RED;
+                    w->right->color = BLACK;
+                    left_rotate(T, w);
+                    w = x->p->left;
+                }
+                w->color = x->p->color;
+                x->p->color = BLACK;
+                w->left->color = BLACK;
+                right_rotate(T, x->p);
+                x = T;
+            }
+        }
+    }
+    x->color = BLACK;
+}
+
+
+// 删除操作,删除T中的z结点
+void rb_delete(RBnode* &T, RBnode* z)
+{
+    RBnode *y = z, *x;// if z has less than two child then y point z, other y point successor of z.
+    RBTreeColor y_origin_color = y->color;
+    if (z->left == nil) {
+        x = z->right;
+        rb_transplant(T, z, z->right);
+    }
+    else if (z->right == nil) {
+        x = z->left;
+        rb_transplant(T, z, z->left);
+    }
+    else {
+        y = minimum(z->right);
+        y_origin_color = y->color;
+        x = y->right;
+        if (y->p == z) { // y是z的直接后继
+            x->p = y;
+        }
+        else { // y是z右子树的最左节点，因此y的做儿子是空的
+            rb_transplant(T, y, y->right);
+            y->right = z->right;
+            y->right->p = y;
+        }
+        rb_transplant(T, z, y);
+        y->left = z->left;
+        y->left->p = y;
+        y->color = z->color; // y的颜色没了，可能会导致破坏树的性质
+    }
+    if (y_origin_color == BLACK) {
+        rb_delete_fixup(T, x);
+    }
+}
+
+// 查找一个元素
+RBnode *rb_search(RBnode*T, int val)
+{
+    if (T == nil) return nil;
+    while (T != nil && T->data != val) {
+        if (T->data > val) T = T->left;
+        else T = T->right;
+    }
+    return T;
+}
 
 
 int main()
@@ -221,5 +336,26 @@ int main()
 
     bfs_rb_tree(T);
 
+    // test rb_search function.
+    int key = 4; // 78
+    RBnode *rest = rb_search(T, key);
+    if (rest == nil) {
+        printf("\nkey [%d] not found.\n", key);
+    }
+    else {
+        printf("\nkey [%d] found, color: %s, parent_color: %s, parent_data: %d\n",
+               key, rest->color == BLACK ? "black" : "red",
+               rest->p->color == RED ? "red" : "black",
+               rest->data);
+    }
+
+    // test delete function.
+    rest = rb_search(T, 7);
+    rb_delete(T, rest);
+    bfs_rb_tree(T);
+
+    // 2018-04-18 完结撒花，终于是把红黑树给简单的实现了，时间跨度比较久 = =
+    // 结合《算法导论》的几个图形进行添加，删除比较好理解一些，仍然需要时间消化
+    // 继续前进~~~
     return 0;
 }
