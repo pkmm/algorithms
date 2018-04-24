@@ -173,7 +173,6 @@ int main()
     //     printf("%d ", tmp->key);
     //     tmp = tmp->next[0];
     // }
-    
 
 	return 0;
 }
