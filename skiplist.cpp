@@ -184,6 +184,7 @@ void printSkipList(SkipList *capital)
 
 int main()
 {
+    srand(time(0));
 	// test insert function.
 	SkipList *capital = createCapital();
 	for (int i = 1; i <= 10; i++)
@@ -193,11 +194,39 @@ int main()
 
 	printSkipList(capital);
 
+	// test. list item.
 	// Node *tmp = capital->head;
 	// while(tmp) {
 	//     printf("%d ", tmp->key);
 	//     tmp = tmp->next[0];
 	// }
+
+	// test find function.
+	clock_t startTime, endTime;
+
+    SkipList *capital_2 = createCapital();
+	for (int i = 1; i <= 1000000; i++)
+	{
+		insert(capital_2, i, i + 100);
+	}
+    startTime = clock();
+	printf("%d\n", find(capital_2, 805529)->value);
+	endTime = clock();
+	printf("Total Time : %.2fs\n", (double)(endTime - startTime) / CLOCKS_PER_SEC);
+
+	// test erase function.
+	SkipList *capital_3 = createCapital();
+	for (int i = 1; i <= 1000000; i++)
+	{
+		insert(capital_3, i, i + 100);
+	}
+	int key = 67;
+	Node* result = find(capital_3, key);
+	printf("\nfind %d, status : %s\n", key, result ? "found" : "not found");
+	bool status = erase(capital_3, key);
+	printf("\ndelete %d is %s\n", key, status?"success":"fail");
+    result = find(capital_3, key);
+	printf("\nfind %d, status : %s\n", key, result ? "found" : "not found");
 
 	return 0;
 }
